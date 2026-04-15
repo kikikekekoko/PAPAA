@@ -2,17 +2,15 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   try {
-    const { model = "gemini-1.5-flash", ...body } = req.body || {};
+    // 프론트엔드에서 보낸 body 데이터를 그대로 가져옵니다.
+    const body = req.body || {};
+    // 프론트엔드에서 모델명을 안 보내면 1.5-flash를 기본으로 씁니다.
+    const model = body.model || "gemini-1.5-flash";
     
-    // 현재 서버가 인식하고 있는 환경변수 목록을 확인 (보안상 값은 안 보여줌)
-    const envKeys = Object.keys(process.env);
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
     if (!apiKey) {
-      return res.status(401).json({ 
-        error: "열쇠(API 키)를 찾을 수 없습니다.",
-        debug: `현재 인식된 변수들: ${envKeys.join(", ")}` 
-      });
+      return res.status(401).json({ error: "Vercel 환경변수에 API 키가 없습니다." });
     }
 
     const response = await fetch(
@@ -20,7 +18,7 @@ export default async function handler(req, res) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body), // 프론트엔드가 보낸 구조 그대로 전달
       }
     );
 
