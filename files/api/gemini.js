@@ -1,31 +1,20 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
+  // ⚠️ 테스트용입니다. 성공 확인 후 반드시 원래대로 돌려야 합니다!
+  // process.env 대신 실제 AIza...로 시작하는 키를 따옴표 안에 넣으세요.
+  const apiKey = "여기에_실제_API_키를_직접_붙여넣으세요"; 
 
   try {
-    // 프론트엔드에서 보낸 body 데이터를 그대로 가져옵니다.
-    const body = req.body || {};
-    // 프론트엔드에서 모델명을 안 보내면 1.5-flash를 기본으로 씁니다.
-    const model = body.model || "gemini-1.5-flash";
-    
-    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-
-    if (!apiKey) {
-      return res.status(401).json({ error: "Vercel 환경변수에 API 키가 없습니다." });
-    }
-
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body), // 프론트엔드가 보낸 구조 그대로 전달
+        body: JSON.stringify(req.body),
       }
     );
-
     const data = await response.json();
     res.status(response.status).json(data);
-
   } catch (e) {
-    res.status(500).json({ error: "서버 터짐: " + e.message });
+    res.status(500).json({ error: e.message });
   }
 }
